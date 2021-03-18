@@ -32,10 +32,24 @@
 &ecspi3 {
 	status = "okay";
 
-	spidev@0 {
+/*	spidev@0 {
+*		reg = <0>;
+*		compatible = "spidev";
+*		spi-max-frequency = <10000000>;
+*		status = "disabled";
+*	};<&gpio1 20 GPIO_ACTIVE_HIGH>
+*/
+
+	ra8875@0{
+		compatible = "raio,ra8875";
 		reg = <0>;
-		compatible = "spidev";
-		spi-max-frequency = <10000000>;
+		fps = <33>;
+         	rotate = <0>;
+	        buswidth = <8>; 
+	        dc-gpios = <&gpio  3 2 GPIO_ACTIVE_HIGH>;
+	        reset-gpios = <&gpio 3 4 GPIO_ACTIVE_HIGH>;
+		led-gpios = <&gpio 1 15 GPIO_ACTIVE_HIGH>;
+	        debug = <0x0>;
 	};
 
 	spidev@1 {
@@ -49,6 +63,7 @@
 		compatible = "spidev";
 		spi-max-frequency = <10000000>;
 	};
+	
 };
 
 /* ECSPI1 */
