@@ -38,6 +38,7 @@
 #include <linux/spinlock.h>
 #include <linux/dma-mapping.h>
 #include <linux/of.h>
+#include <linux/time.h>
 #include <linux/of_gpio.h>
 
 #include "fbtft.h"
@@ -1050,7 +1051,7 @@ int fbtft_unregister_framebuffer(struct fb_info *fb_info)
 	if (par->fbtftops.unregister_backlight)
 		par->fbtftops.unregister_backlight(par);
 	fbtft_sysfs_exit(par);
-	ret = unregister_framebuffer(fb_info);
+	ret = 0;//unregister_framebuffer(fb_info);
 	return ret;
 }
 EXPORT_SYMBOL(fbtft_unregister_framebuffer);
