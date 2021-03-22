@@ -44,12 +44,13 @@
 		compatible = "er_tftm070_5";
 		reg = <0>;
 		fps = <33>;
-         	rotate = <0>;
-	        buswidth = <8>; 
-	        dc-gpios = <&gpio  3 2 GPIO_ACTIVE_HIGH>;
-	        reset-gpios = <&gpio 3 4 GPIO_ACTIVE_HIGH>;
-		led-gpios = <&gpio 1 15 GPIO_ACTIVE_HIGH>;
-	        debug = <0x0>;
+		rotate = <0>;
+		buswidth = <8>; 
+		dc-gpios = <&gpio3 2 GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&gpio3 4 GPIO_ACTIVE_HIGH>;
+		led-gpios = <&gpio1 15 GPIO_ACTIVE_HIGH>;
+		debug = <0x0>;
+		status = "okay";
 	};
 
 	spidev@1 {

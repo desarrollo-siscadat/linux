@@ -314,7 +314,7 @@
 				MX6UL_PAD_GPIO1_IO02__GPIO1_IO02			0x10b0 /* RESET_TOUCH */
 				MX6UL_PAD_LCD_DATA16__GPIO3_IO21			0x10b0 /* CTRL_SAM */
 				MX6UL_PAD_GPIO1_IO09__GPIO1_IO09			0x10b0 /* BUZZER */
-				/* GPIO para uso futuro de pantalla TFT, comunicaci\F3n paralela */
+				/* GPIO para uso futuro de pantalla TFT, comunicacion paralela */
 				MX6UL_PAD_LCD_DATA00__GPIO3_IO05			0x10b0
 				MX6UL_PAD_LCD_DATA01__GPIO3_IO06			0x10b0
 				MX6UL_PAD_LCD_DATA02__GPIO3_IO07			0x10b0
