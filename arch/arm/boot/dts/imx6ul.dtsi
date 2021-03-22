@@ -44,7 +44,6 @@
 		sai2 = &sai2;
 		sai3 = &sai3;
 		spi0 = &ecspi1;
-		matrix = &matrix;
 		spi1 = &ecspi2;
 		spi2 = &ecspi3;
 		spi3 = &ecspi4;

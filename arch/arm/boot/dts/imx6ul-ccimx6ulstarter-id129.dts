@@ -37,11 +37,11 @@
 *		compatible = "spidev";
 *		spi-max-frequency = <10000000>;
 *		status = "disabled";
-*	};<&gpio1 20 GPIO_ACTIVE_HIGH>
+*	};
 */
 
-	matrix: matrix@0{
-		compatible = "raio,ra8875";
+	fbtftlcd@0{
+		compatible = "platform:ra8875";
 		reg = <0>;
 		fps = <33>;
          	rotate = <0>;
