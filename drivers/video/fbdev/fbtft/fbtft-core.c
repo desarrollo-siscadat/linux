@@ -38,7 +38,6 @@
 #include <linux/spinlock.h>
 #include <linux/dma-mapping.h>
 #include <linux/of.h>
-#include <linux/time.h>
 #include <linux/of_gpio.h>
 
 #include "fbtft.h"
@@ -48,6 +47,7 @@ extern void fbtft_sysfs_exit(struct fbtft_par *par);
 extern void fbtft_expand_debug_value(unsigned long *debug);
 extern int fbtft_gamma_parse_str(struct fbtft_par *par, unsigned long *curves,
 						const char *str, int size);
+extern static inline struct timespec timespec_sub(struct timespec lhs,struct timespec rhs);
 
 static unsigned long debug;
 module_param(debug, ulong , 0);
@@ -422,7 +422,7 @@ void fbtft_update_display(struct fbtft_par *par, unsigned start_line, unsigned e
 			par->update_time.tv_sec = ts_start.tv_sec;
 			par->update_time.tv_nsec = ts_start.tv_nsec;
 		}
-		ts_fps = timespec64_sub(ts_start, par->update_time);
+		ts_fps = timespec_sub(ts_start, par->update_time);
 		par->update_time.tv_sec = ts_start.tv_sec;
 		par->update_time.tv_nsec = ts_start.tv_nsec;
 		fps_ms = (ts_fps.tv_sec * 1000) + ((ts_fps.tv_nsec / 1000000) % 1000);
@@ -430,7 +430,7 @@ void fbtft_update_display(struct fbtft_par *par, unsigned start_line, unsigned e
 		fps = fps_ms * 1000 + fps_us;
 		fps = fps ? 1000000 / fps : 0;
 
-		ts_duration = timespec64_sub(ts_end, ts_start);
+		ts_duration = timespec_sub(ts_end, ts_start);
 		duration_ms = (ts_duration.tv_sec * 1000) + ((ts_duration.tv_nsec / 1000000) % 1000);
 		duration_us = (ts_duration.tv_nsec / 1000) % 1000;
 		throughput = duration_ms * 1000 + duration_us;
