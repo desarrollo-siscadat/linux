@@ -47,7 +47,7 @@ extern void fbtft_sysfs_exit(struct fbtft_par *par);
 extern void fbtft_expand_debug_value(unsigned long *debug);
 extern int fbtft_gamma_parse_str(struct fbtft_par *par, unsigned long *curves,
 						const char *str, int size);
-extern static inline struct timespec timespec_sub(struct timespec lhs,struct timespec rhs);
+extern struct timespec timespec_sub(struct timespec lhs,struct timespec rhs);
 
 static unsigned long debug;
 module_param(debug, ulong , 0);
