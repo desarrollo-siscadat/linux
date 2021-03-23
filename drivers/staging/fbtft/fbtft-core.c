@@ -379,7 +379,7 @@ void fbtft_update_display(struct fbtft_par *par, unsigned start_line, unsigned e
 	if (unlikely(par->debug & (DEBUG_TIME_FIRST_UPDATE | DEBUG_TIME_EACH_UPDATE))) {
 		if ((par->debug & DEBUG_TIME_EACH_UPDATE) || \
 				((par->debug & DEBUG_TIME_FIRST_UPDATE) && !par->first_update_done)) {
-			getnstimeofday(&ts_start);
+			ktime_get_real_ts64(&ts_start);
 			timeit = true;
 		}
 	}
