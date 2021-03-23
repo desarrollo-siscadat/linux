@@ -416,7 +416,7 @@ void fbtft_update_display(struct fbtft_par *par, unsigned start_line, unsigned e
 			__func__);
 
 	if (unlikely(timeit)) {
-		getnstimeofday(&ts_end);
+		ktime_get_real_ts64(&ts_end);
 		if (par->update_time.tv_nsec == 0 && par->update_time.tv_sec == 0) {
 			par->update_time.tv_sec = ts_start.tv_sec;
 			par->update_time.tv_nsec = ts_start.tv_nsec;
