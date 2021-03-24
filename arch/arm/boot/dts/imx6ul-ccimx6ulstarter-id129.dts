@@ -42,6 +42,7 @@
 
 	fbtftlcd@0{
 		compatible = "er_tftm070_5";
+		spi-max-frequency = <32000000>;
 		reg = <0>;
 		fps = <33>;
 		rotate = <0>;
