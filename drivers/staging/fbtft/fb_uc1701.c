@@ -24,7 +24,7 @@
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
-#include <linux/gpio.h>
+#include <linux/gpio/consumer.h>
 #include <linux/spi/spi.h>
 #include <linux/delay.h>
 
@@ -177,9 +177,9 @@ static int write_vmem(struct fbtft_par *par, size_t offset, size_t len)
 		 (((col)+SHIFT_ADDR_NORMAL) & 0x0F),
 		  LCD_COL_ADDRESS | ((((col)+SHIFT_ADDR_NORMAL)>>4) & 0x0F) */
 		write_reg(par, LCD_COL_ADDRESS);
-		gpio_set_value(par->gpio.dc, 1);
+		gpiod-set-value(par->gpio.dc, 1);
 		ret = par->fbtftops.write(par, par->txbuf.buf, WIDTH);
-		gpio_set_value(par->gpio.dc, 0);
+		gpiod-set-value(par->gpio.dc, 0);
 	}
 
 	if (ret < 0)

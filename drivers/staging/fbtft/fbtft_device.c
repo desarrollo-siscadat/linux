@@ -20,7 +20,7 @@
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
-#include <linux/gpio.h>
+#include <linux/gpio/consumer.h>
 #include <linux/spi/spi.h>
 
 #include "fbtft.h"
@@ -182,18 +182,7 @@ static struct fbtft_device_display displays[] = {
 			.modalias = "fb_st7735r",
 			.max_speed_hz = 32000000,
 			.mode = SPI_MODE_0,
-			.platform_data = &(struct fbtft_platform_data) {
-				.display = {
-					.buswidth = 8,
-					.backlight = 1,
-				},
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 25 },
-					{ "dc", 24 },
-					{ "led", 18 },
-					{},
-				},
-				.gamma = ADAFRUIT18_GAMMA,
+			.gamma = ADAFRUIT18_GAMMA,
 			}
 		}
 	}, {
@@ -210,12 +199,6 @@ static struct fbtft_device_display displays[] = {
 					    adafruit18_green_tab_set_addr_win,
 				},
 				.bgr = true,
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 25 },
-					{ "dc", 24 },
-					{ "led", 18 },
-					{},
-				},
 				.gamma = ADAFRUIT18_GAMMA,
 			}
 		}
@@ -231,11 +214,6 @@ static struct fbtft_device_display displays[] = {
 					.backlight = 1,
 				},
 				.bgr = true,
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 25 },
-					{ "led", 23 },
-					{},
-				},
 			}
 		}
 	}, {
@@ -249,13 +227,7 @@ static struct fbtft_device_display displays[] = {
 					.buswidth = 8,
 					.backlight = 1,
 				},
-				.bgr = true,
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 25 },
-					{ "dc", 24 },
-					{ "led", 18 },
-					{},
-				},
+				.bgr = true
 			}
 		}
 	}, {
@@ -269,13 +241,7 @@ static struct fbtft_device_display displays[] = {
 					.buswidth = 8,
 					.backlight = 1,
 				},
-				.bgr = true,
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 25 },
-					{ "dc", 24 },
-					{ "led", 18 },
-					{},
-				},
+				.bgr = true
 			}
 		}
 	}, {
@@ -287,12 +253,7 @@ static struct fbtft_device_display displays[] = {
 			.platform_data = &(struct fbtft_platform_data) {
 				.display = {
 					.buswidth = 8,
-				},
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 25 },
-					{ "dc", 24 },
-					{},
-				},
+				}
 			}
 		}
 	}, {
@@ -306,10 +267,8 @@ static struct fbtft_device_display displays[] = {
 				.display = {
 					.buswidth = 8,
 					.backlight = FBTFT_ONBOARD_BACKLIGHT,
-				},
-				.gpios = (const struct fbtft_gpio []) {
-					{},
-				},
+				}
+				
 			},
 			}
 		}
@@ -323,12 +282,7 @@ static struct fbtft_device_display displays[] = {
 				.display = {
 					.buswidth = 8,
 				},
-				.bgr = true,
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 13 },
-					{ "dc", 6 },
-					{},
-				},
+				.bgr = true
 			}
 		}
 	}, {
@@ -345,11 +299,6 @@ static struct fbtft_device_display displays[] = {
 					.height = 272,
 				},
 				.bgr = true,
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 100 },
-					{ "dc", 98 },
-					{},
-				},
 			}
 		}
 	}, {
@@ -365,12 +314,7 @@ static struct fbtft_device_display displays[] = {
 					.width = 800,
 					.height = 480,
 				},
-				.bgr = true,
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 100 },
-					{ "dc", 98 },
-					{ "led",47 },
-				},
+				.bgr = true
 			}
 		}
 	}, {
@@ -378,14 +322,7 @@ static struct fbtft_device_display displays[] = {
 		.spi = &(struct spi_board_info) {
 			.modalias = "flexfb",
 			.max_speed_hz = 32000000,
-			.mode = SPI_MODE_0,
-			.platform_data = &(struct fbtft_platform_data) {
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 25 },
-					{ "dc", 24 },
-					{},
-				},
-			}
+			.mode = SPI_MODE_0
 		}
 	}, {
 		.name = "flexpfb",
@@ -393,24 +330,7 @@ static struct fbtft_device_display displays[] = {
 			.name = "flexpfb",
 			.id = 0,
 			.dev = {
-			.release = fbtft_device_pdev_release,
-			.platform_data = &(struct fbtft_platform_data) {
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 17 },
-					{ "dc", 1 },
-					{ "wr", 0 },
-					{ "cs", 21 },
-					{ "db00", 9 },
-					{ "db01", 11 },
-					{ "db02", 18 },
-					{ "db03", 23 },
-					{ "db04", 24 },
-					{ "db05", 25 },
-					{ "db06", 8 },
-					{ "db07", 7 },
-					{ "led", 4 },
-					{},
-				},
+			.release = fbtft_device_pdev_release
 			},
 			}
 		}
@@ -425,12 +345,7 @@ static struct fbtft_device_display displays[] = {
 					.buswidth = 8,
 					.backlight = FBTFT_ONBOARD_BACKLIGHT,
 				},
-				.bgr = true,
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 24 },
-					{ "dc", 25 },
-					{},
-				},
+				.bgr = true
 			}
 		}
 	}, {
@@ -443,13 +358,7 @@ static struct fbtft_device_display displays[] = {
 				.display = {
 					.buswidth = 8,
 					.backlight = 1,
-				},
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 25 },
-					{ "dc", 24 },
-					{ "led", 23 },
-					{},
-				},
+				}
 			}
 		}
 	}, {
@@ -464,12 +373,7 @@ static struct fbtft_device_display displays[] = {
 					.backlight = 1,
 				},
 				.startbyte = 0b01110000,
-				.bgr = true,
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 25 },
-					{ "led", 18 },
-					{},
-				},
+				.bgr = true
 			}
 		}
 	}, {
@@ -486,12 +390,7 @@ static struct fbtft_device_display displays[] = {
 				},
 				.startbyte = 0b01110000,
 				.bgr = true,
-				.fps= 50,
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 25 },
-					{ "led", 18 },
-					{},
-				},
+				.fps= 50
 				.gamma = HY28B_GAMMA,
 			}
 		}
@@ -507,13 +406,7 @@ static struct fbtft_device_display displays[] = {
 					.buswidth = 8,
 					.backlight = 1,
 				},
-				.bgr = true,
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 25 },
-					{ "dc", 24 },
-					{ "led", 22 },
-					{},
-				},
+				.bgr = true
 			}
 		}
 	}, {
@@ -528,23 +421,7 @@ static struct fbtft_device_display displays[] = {
 					.buswidth = 8,
 					.backlight = 1,
 				},
-				.bgr = false,
-				.gpios = (const struct fbtft_gpio []) {
-					/* Wiring for LCD adapter kit */
-					{ "reset", 7 },
-					{ "dc", 0 }, 	/* rev 2: 2 */
-					{ "wr", 1 }, 	/* rev 2: 3 */
-					{ "cs", 8 },
-					{ "db00", 17 },
-					{ "db01", 18 },
-					{ "db02", 21 }, /* rev 2: 27 */
-					{ "db03", 22 },
-					{ "db04", 23 },
-					{ "db05", 24 },
-					{ "db06", 25 },
-					{ "db07", 4 },
-					{}
-				},
+				.bgr = false
 			},
 			}
 		}
@@ -560,10 +437,7 @@ static struct fbtft_device_display displays[] = {
 					.buswidth = 8,
 					.backlight = 1,
 				},
-				.bgr = true,
-				.gpios = (const struct fbtft_gpio []) {
-					{},
-				},
+				.bgr = true
 			},
 			}
 		}
@@ -578,12 +452,7 @@ static struct fbtft_device_display displays[] = {
 					.buswidth = 8,
 					.backlight = 1,
 				},
-				.bgr = true,
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 25 },
-					{ "dc", 24 },
-					{},
-				},
+				.bgr = true
 			}
 		}
 	}, {
@@ -598,13 +467,7 @@ static struct fbtft_device_display displays[] = {
 					.backlight = 1,
 				},
 				.startbyte = 0b01110000,
-				.bgr = true,
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 25 },
-					{ "dc", 24 },
-					{ "led", 18 },
-					{},
-				},
+				.bgr = true
 			}
 		}
 	}, {
@@ -618,12 +481,7 @@ static struct fbtft_device_display displays[] = {
 					.buswidth = 9,
 					.backlight = 1,
 				},
-				.bgr = true,
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 25 },
-					{ "led", 18 },
-					{},
-				},
+				.bgr = true
 			}
 		}
 	}, {
@@ -631,12 +489,7 @@ static struct fbtft_device_display displays[] = {
 		.spi = &(struct spi_board_info) {
 			.modalias = "fb_watterott",
 			.max_speed_hz = 4000000,
-			.mode = SPI_MODE_3,
-			.platform_data = &(struct fbtft_platform_data) {
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 25 },
-					{},
-				},
+			.mode = SPI_MODE_3
 			}
 		}
 	}, {
@@ -648,13 +501,7 @@ static struct fbtft_device_display displays[] = {
 			.platform_data = &(struct fbtft_platform_data) {
 				.display = {
 					.buswidth = 8,
-				},
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 25 },
-					{ "dc", 24 },
-					{ "led", 23 },
-					{},
-				},
+				}
 			}
 		}
 	}, {
@@ -666,13 +513,7 @@ static struct fbtft_device_display displays[] = {
 			.platform_data = &(struct fbtft_platform_data) {
 				.display = {
 					.buswidth = 8,
-				},
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 25 },
-					{ "dc", 24 },
-					{ "led", 23 },
-					{},
-				},
+				}
 			}
 		}
 	}, {
@@ -687,13 +528,7 @@ static struct fbtft_device_display displays[] = {
 					.buswidth = 8,
 					.backlight = 1,
 				},
-				.bgr = true,
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 25 },
-					{ "dc", 24 },
-					{ "led", 22 },
-					{},
-				},
+				.bgr = true
 			}
 		}
 	}, {
@@ -709,11 +544,7 @@ static struct fbtft_device_display displays[] = {
 					.backlight = 1,
 					.init_sequence = pitft_init_sequence,
 				},
-				.bgr = true,
-				.gpios = (const struct fbtft_gpio []) {
-					{ "dc", 25 },
-					{},
-				},
+				.bgr = true
 			}
 		}
 	}, {
@@ -727,11 +558,6 @@ static struct fbtft_device_display displays[] = {
 					.buswidth = 8,
 				},
 				.bgr = true,
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 24 },
-					{ "dc", 25 },
-					{},
-				},
 				.gamma =	"0 2 2 2 2 2 2 2 " \
 						"2 2 2 2 2 2 2 2 " \
 						"2 2 2 2 2 2 2 2 " \
@@ -753,13 +579,7 @@ static struct fbtft_device_display displays[] = {
 					.buswidth = 8,
 					.backlight = 1,
 				},
-				.bgr = true,
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 23 },
-					{ "dc", 24 },
-					{ "led", 18 },
-					{},
-				},
+				.bgr = true
 			}
 		}
 	}, {
@@ -773,13 +593,7 @@ static struct fbtft_device_display displays[] = {
 					.buswidth = 8,
 					.backlight = 1,
 				},
-				.bgr = true,
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 25 },
-					{ "dc", 24 },
-					{ "led", 23 },
-					{},
-				},
+				.bgr = true
 			}
 		}
 	}, {
@@ -791,12 +605,7 @@ static struct fbtft_device_display displays[] = {
 			.platform_data = &(struct fbtft_platform_data) {
 				.display = {
 					.buswidth = 8,
-				},
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 25 },
-					{ "dc", 24 },
-					{},
-				},
+				}
 			}
 		}
 	}, {
@@ -813,10 +622,7 @@ static struct fbtft_device_display displays[] = {
 					.backlight = 1,
 					.fbtftops.write = write_gpio16_wr_slow,
 				},
-				.bgr = true,
-				.gpios = (const struct fbtft_gpio []) {
-					{},
-				},
+				.bgr = true
 			},
 		},
 		}
@@ -833,10 +639,7 @@ static struct fbtft_device_display displays[] = {
 					.txbuflen = -2, /* disable buffer */
 					.backlight = 1,
 				},
-				.bgr = true,
-				.gpios = (const struct fbtft_gpio []) {
-					{},
-				},
+				.bgr = true
 			},
 		},
 		}
@@ -855,10 +658,7 @@ static struct fbtft_device_display displays[] = {
 					.fbtftops.write = \
 						fbtft_write_gpio16_wr_latched,
 				},
-				.bgr = true,
-				.gpios = (const struct fbtft_gpio []) {
-					{},
-				},
+				.bgr = true
 			},
 		},
 		}
@@ -873,12 +673,7 @@ static struct fbtft_device_display displays[] = {
 					.buswidth = 8,
 					.backlight = 1,
 				},
-				.bgr = true,
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 25 },
-					{ "dc", 24 },
-					{},
-				},
+				.bgr = true
 			}
 		}
 	}, {
@@ -888,12 +683,7 @@ static struct fbtft_device_display displays[] = {
 			.max_speed_hz = 500000,
 			.bus_num = 0,
 			.chip_select = 0,
-			.mode = SPI_MODE_0,
-			.platform_data = &(struct fbtft_platform_data) {
-				.gpios = (const struct fbtft_gpio []) {
-					{},
-				},
-			}
+			.mode = SPI_MODE_0
 		}
 	}, {
 		.name = "ssd1331",
@@ -904,12 +694,7 @@ static struct fbtft_device_display displays[] = {
 			.platform_data = &(struct fbtft_platform_data) {
 				.display = {
 					.buswidth = 8,
-				},
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 24 },
-					{ "dc", 25 },
-					{},
-				},
+				}
 			}
 		}
 	}, {
@@ -923,12 +708,7 @@ static struct fbtft_device_display displays[] = {
 					.buswidth = 8,
 					.backlight = 1,
 				},
-				.bgr = true,
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 25 },
-					{ "dc", 24 },
-					{ "led", 18 },
-					{},
+				.bgr = true
 				},
 			}
 		}
@@ -943,13 +723,7 @@ static struct fbtft_device_display displays[] = {
 					.buswidth = 8,
 					.backlight = 1,
 				},
-				.bgr = true,
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 25 },
-					{ "dc", 24 },
-					{ "led", 18 },
-					{},
-				},
+				.bgr = true
 			}
 		}
 	}, {
@@ -963,13 +737,7 @@ static struct fbtft_device_display displays[] = {
 					.buswidth = 8,
 					.backlight = 1,
 				},
-				.bgr = true,
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 15 },
-					{ "dc", 25 },
-					{ "led_", 18 },
-					{},
-				},
+				.bgr = true
 			}
 		}
 	}, {
@@ -983,13 +751,7 @@ static struct fbtft_device_display displays[] = {
 					.buswidth = 8,
 					.backlight = 1,
 				},
-				.bgr = true,
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 15 },
-					{ "dc", 25 },
-					{ "led_", 18 },
-					{},
-				},
+				.bgr = true
 			}
 		}
 	}, {
@@ -1021,12 +783,7 @@ static struct fbtft_device_display displays[] = {
 					.backlight = 1,
 					.init_sequence = waveshare32b_init_sequence,
 				},
-				.bgr = true,
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 27 },
-					{ "dc", 22 },
-					{},
-				},
+				.bgr = true
 			}
 		}
 	}, {
@@ -1038,12 +795,7 @@ static struct fbtft_device_display displays[] = {
 			.platform_data = &(struct fbtft_platform_data) {
 				.display = {
 					.buswidth = 8,
-				},
-				.gpios = (const struct fbtft_gpio []) {
-					{ "reset", 24 },
-					{ "dc", 25 },
-					{},
-				},
+				}
 			}
 		}
 	}, {
@@ -1090,16 +842,16 @@ static int write_gpio16_wr_slow(struct fbtft_par *par, void *buf, size_t len)
 		data = *(u16 *) buf;
 
 		/* Start writing by pulling down /WR */
-		gpio_set_value(par->gpio.wr, 0);
+		gpiod-set-value(par->gpio.wr, 0);
 
 		/* Set data */
 #ifndef DO_NOT_OPTIMIZE_FBTFT_WRITE_GPIO
 		if (data == prev_data) {
-			gpio_set_value(par->gpio.wr, 0); /* used as delay */
+			gpiod-set-value(par->gpio.wr, 0); /* used as delay */
 		} else {
 			for (i = 0; i < 16; i++) {
 				if ((data & 1) != (prev_data & 1))
-					gpio_set_value(par->gpio.db[i],
+					gpiod-set-value(par->gpio.db[i],
 								(data & 1));
 				data >>= 1;
 				prev_data >>= 1;
@@ -1107,13 +859,13 @@ static int write_gpio16_wr_slow(struct fbtft_par *par, void *buf, size_t len)
 		}
 #else
 		for (i = 0; i < 16; i++) {
-			gpio_set_value(par->gpio.db[i], (data & 1));
+			gpiod-set-value(par->gpio.db[i], (data & 1));
 			data >>= 1;
 		}
 #endif
 
 		/* Pullup /WR */
-		gpio_set_value(par->gpio.wr, 1);
+		gpiod-set-value(par->gpio.wr, 1);
 
 #ifndef DO_NOT_OPTIMIZE_FBTFT_WRITE_GPIO
 		prev_data = *(u16 *) buf;

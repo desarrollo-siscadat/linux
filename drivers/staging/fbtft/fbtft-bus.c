@@ -1,6 +1,6 @@
 #include <linux/export.h>
 #include <linux/errno.h>
-#include <linux/gpio.h>
+#include <linux/gpio/consumer.h>
 #include <linux/spi/spi.h>
 #include "fbtft.h"
 
@@ -40,7 +40,7 @@ void func(struct fbtft_par *par, int len, ...)                                \
 									      \
 	*buf = modifier((type)va_arg(args, unsigned int));                    \
 	if (par->gpio.dc != -1)                                               \
-		gpio_set_value(par->gpio.dc, 0);                              \
+		gpiod-set-value(par->gpio.dc, 0);                              \
 	ret = par->fbtftops.write(par, par->buf, sizeof(type)+offset);        \
 	if (ret < 0) {                                                        \
 		va_end(args);                                                 \
@@ -58,7 +58,7 @@ void func(struct fbtft_par *par, int len, ...)                                \
 			*buf++ = modifier((type)va_arg(args, unsigned int));  \
 		}                                                             \
 		if (par->gpio.dc != -1)                                       \
-			gpio_set_value(par->gpio.dc, 1);                      \
+			gpiod-set-value(par->gpio.dc, 1);                      \
 		ret = par->fbtftops.write(par, par->buf, len * (sizeof(type)+offset)); \
 		if (ret < 0) {                                                \
 			va_end(args);                                         \
@@ -144,8 +144,8 @@ int fbtft_write_vmem16_bus8(struct fbtft_par *par, size_t offset, size_t len)
 	remain = len / 2;
 	vmem16 = (u16 *)(par->info->screen_base + offset);
 
-	if (par->gpio.dc != -1)
-		gpio_set_value(par->gpio.dc, 1);
+	if (!par->gpio.dc)
+		gpiod_set_value(par->gpio.dc, 1);
 
 	/* non buffered write */
 	if (!par->txbuf.buf)
@@ -248,7 +248,7 @@ int fbtft_write_vmem16_bus16(struct fbtft_par *par, size_t offset, size_t len)
 	vmem16 = (u16 *)(par->info->screen_base + offset);
 
 	if (par->gpio.dc != -1)
-		gpio_set_value(par->gpio.dc, 1);
+		gpiod-set-value(par->gpio.dc, 1);
 
 	/* no need for buffered write with 16-bit bus */
 	return par->fbtftops.write(par, vmem16, len);

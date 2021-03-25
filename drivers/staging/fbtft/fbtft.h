@@ -51,7 +51,7 @@
  */
 struct fbtft_gpio {
 	char name[FBTFT_GPIO_NAME_SIZE];
-	unsigned gpio;
+	struct gpio_desc *gpio;
 };
 
 struct fbtft_par;
@@ -158,7 +158,6 @@ struct fbtft_display {
  */
 struct fbtft_platform_data {
 	struct fbtft_display display;
-	const struct fbtft_gpio *gpios;
 	unsigned rotate;
 	bool bgr;
 	unsigned fps;
@@ -232,15 +231,15 @@ struct fbtft_par {
 	unsigned dirty_lines_start;
 	unsigned dirty_lines_end;
 	struct {
-		int reset;
-		int dc;
-		int rd;
-		int wr;
-		int latch;
-		int cs;
-		int db[16];
-		int led[16];
-		int aux[16];
+		struct gpio_desc * reset;
+		struct gpio_desc * dc;
+		struct gpio_desc * rd;
+		struct gpio_desc * wr;
+		struct gpio_desc * latch;
+		struct gpio_desc * cs;
+		struct gpio_desc * db[16];
+		struct gpio_desc * led[16];
+		struct gpio_desc * aux[16];
 	} gpio;
 	int *init_sequence;
 	struct {

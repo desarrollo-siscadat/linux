@@ -29,7 +29,7 @@
 #include <linux/slab.h>
 #include <linux/init.h>
 #include <linux/fb.h>
-#include <linux/gpio.h>
+#include <linux/gpio/consumer.h>
 #include <linux/spi/spi.h>
 #include <linux/delay.h>
 #include <linux/uaccess.h>
@@ -38,7 +38,6 @@
 #include <linux/spinlock.h>
 #include <linux/dma-mapping.h>
 #include <linux/of.h>
-#include <linux/of_gpio.h>
 
 #include "fbtft.h"
 
@@ -259,9 +258,9 @@ int fbtft_backlight_update_status(struct backlight_device *bd)
 		__func__, polarity, bd->props.power, bd->props.fb_blank);
 
 	if ((bd->props.power == FB_BLANK_UNBLANK) && (bd->props.fb_blank == FB_BLANK_UNBLANK))
-		gpio_set_value(par->gpio.led[0], polarity);
+		gpiod-set-value(par->gpio.led[0], polarity);
 	else
-		gpio_set_value(par->gpio.led[0], !polarity);
+		gpiod-set-value(par->gpio.led[0], !polarity);
 
 	return 0;
 }
@@ -360,9 +359,9 @@ void fbtft_reset(struct fbtft_par *par)
 	if (par->gpio.reset == -1)
 		return;
 	fbtft_par_dbg(DEBUG_RESET, par, "%s()\n", __func__);
-	gpio_set_value(par->gpio.reset, 0);
+	gpiod-set-value(par->gpio.reset, 0);
 	udelay(20);
-	gpio_set_value(par->gpio.reset, 1);
+	gpiod-set-value(par->gpio.reset, 1);
 	mdelay(120);
 }
 
@@ -1174,7 +1173,7 @@ int fbtft_init_display(struct fbtft_par *par)
 
 	par->fbtftops.reset(par);
 	if (par->gpio.cs != -1)
-		gpio_set_value(par->gpio.cs, 0);  /* Activate chip */
+		gpiod-set-value(par->gpio.cs, 0);  /* Activate chip */
 
 	i = 0;
 	while (i < FBTFT_MAX_INIT_SEQUENCE) {
