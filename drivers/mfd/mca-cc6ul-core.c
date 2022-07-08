@@ -90,6 +90,7 @@ static struct mca_drv *pmca;
 
 static const char _enabled[] = "enabled";
 static const char _disabled[] = "disabled";
+static const char _unlock_pattern[] = "CTRU";
 
 static struct resource mca_cc6ul_rtc_resources[] = {
 	{
@@ -623,11 +624,124 @@ static ssize_t nvram_write(struct file *filp, struct kobject *kobj,
 	return count;
 }
 
+static ssize_t uid_show(struct device *dev,
+			struct device_attribute *attr, char *buf)
+
+{
+	struct mca_drv *mca = dev_get_drvdata(dev);
+	int ret, i, count;
+
+	for (i = 0, ret = 0; i < MCA_UID_SIZE; i++) {
+		count = sprintf(buf, i ? ":%02x" : "%02x", mca->uid[i]);
+		if (count < 0)
+			return count;
+		ret += count;
+		buf += count;
+	}
+
+	return ret;
+}
+
+static DEVICE_ATTR(uid, S_IRUGO, uid_show, NULL);
+
+static ssize_t reboot_safe_store(struct device *dev,
+				 struct device_attribute *attr,
+				 const char *buf, size_t count)
+{
+	struct mca_drv *mca = dev_get_drvdata(dev);
+	u8 value;
+	int ret;
+
+	/* Timeout value must be provided */
+	if (count < sizeof(_unlock_pattern))
+		return -ENODATA ;
+
+	if (strncmp(buf, _unlock_pattern, sizeof(_unlock_pattern) - 1))
+		return -EINVAL;
+
+	ret = kstrtou8(&buf[4], 0, &value);
+	if (ret) {
+		dev_err(pmca->dev,
+			"failed to parse timeout value, range is 0-255 (%d)\n",
+			ret);
+		return ret;
+	}
+
+	ret = mca_cc6ul_unlock_ctrl(mca);
+	if (ret)
+		return ret;
+
+	ret = regmap_write(pmca->regmap, MCA_RESET_SAFE_TIMEOUT, value);
+	if (ret) {
+		dev_err(pmca->dev,
+			"failed to write MCA_RESET_SAFE_TIMEOUT (%d)\n",
+			ret);
+		return ret;
+	}
+
+	ret = regmap_write(pmca->regmap, MCA_CTRL_0, MCA_RESET_SAFE);
+	if (ret) {
+		dev_err(mca->dev, "Cannot update MCA CTRL_0 register (%d)\n",
+			ret);
+		return ret;
+	}
+
+	return count;
+}
+static DEVICE_ATTR(reboot_safe, 0200, NULL, reboot_safe_store);
+
+static ssize_t pwroff_safe_store(struct device *dev,
+				 struct device_attribute *attr,
+				 const char *buf, size_t count)
+{
+	struct mca_drv *mca = dev_get_drvdata(dev);
+	u8 value;
+	int ret;
+
+	/* Timeout value must be provided */
+	if (count < sizeof(_unlock_pattern))
+		return -ENODATA ;
+
+	if (strncmp(buf, _unlock_pattern, sizeof(_unlock_pattern) - 1))
+		return -EINVAL;
+
+	ret = kstrtou8(&buf[4], 0, &value);
+	if (ret) {
+		dev_err(pmca->dev,
+			"failed to parse timeout value, range is 0-255 (%d)\n",
+			ret);
+		return ret;
+	}
+
+	ret = mca_cc6ul_unlock_ctrl(mca);
+	if (ret)
+		return ret;
+
+	ret = regmap_write(pmca->regmap, MCA_PWROFF_SAFE_TIMEOUT, value);
+	if (ret) {
+		dev_err(pmca->dev,
+			"failed to write MCA_PWROFF_SAFE_TTIMEOUT (%d)\n",
+			ret);
+		return ret;
+	}
+
+	ret = regmap_write(pmca->regmap, MCA_CTRL_0, MCA_PWROFF_SAFE);
+	if (ret) {
+		dev_err(mca->dev, "Cannot update MCA CTRL_0 register (%d)\n",
+			ret);
+		return ret;
+	}
+
+	return count;
+}
+static DEVICE_ATTR(pwroff_safe, 0200, NULL, pwroff_safe_store);
+
 static struct attribute *mca_cc6ul_sysfs_entries[] = {
 	&dev_attr_ext_32khz.attr,
 	&dev_attr_hw_version.attr,
 	&dev_attr_fw_version.attr,
 	&dev_attr_fw_update.attr,
+	&dev_attr_uid.attr,
 	NULL,
 };
 
@@ -656,6 +770,14 @@ static struct dyn_attribute mca_cc6ul_sysfs_dyn_entries[] = {
 	{
 		.since =	MCA_MAKE_FW_VER(1,2),
 		.attr =		&dev_attr_last_mpu_reset.attr,
+	},
+	{
+		.since =	MCA_MAKE_FW_VER(1,2),
+		.attr =		&dev_attr_reboot_safe.attr,
+	},
+	{
+		.since =	MCA_MAKE_FW_VER(1,2),
+		.attr =		&dev_attr_pwroff_safe.attr,
 	},
 };
 
@@ -720,14 +842,22 @@ static void mca_cc6ul_power_off(void)
 		return;
 	}
 
+	/*
+	 * Following line prints the 'Power down' message which confirms the
+	 * device is in power off.
+	 * That message used to be printed by pm_power_off() function that is
+	 * being deprecated here by the syscore approach.
+	 */
+	pr_emerg("Power down through syscore\n");
+
 	do {
 		/* Set power off bit in PWR_CTRL_0 register to shutdown */
 		ret = regmap_update_bits(pmca->regmap, MCA_PWR_CTRL_0,
 					 MCA_PWR_GO_OFF,
 					 MCA_PWR_GO_OFF);
 		if (ret)
-			printk(KERN_ERR "ERROR: accesing PWR_CTRL_0 register "
-			       "[%s:%d/%s()]!\n", __FILE__, __LINE__, __func__);
+			printk(KERN_ERR "ERROR: accesing PWR_CTRL_0 register (%d) "
+			       "[%s:%d/%s()]!\n", ret, __FILE__, __LINE__, __func__);
 
 		/*
 		 * Even if the regmap update returned with success, retry...
@@ -742,13 +872,10 @@ static void mca_cc6ul_power_off(void)
 }
 
 #define MCA_MAX_RESET_TRIES 5
-static void mca_cc6ul_shutdown(void)
+static void mca_cc6ul_reset(void)
 {
 	const uint8_t unlock_pattern[] = {'C', 'T', 'R', 'U'};
 	int ret, try = 0;
-
-	if (system_state != SYSTEM_RESTART)
-		return;
 
 	if (!pmca) {
 		printk(KERN_ERR "ERROR: unable to shutdown [%s:%d/%s()]!\n",
@@ -779,6 +906,22 @@ reset_retry:
 	} while (++try < MCA_MAX_RESET_TRIES);
 
 	dev_err(pmca->dev, "failed to reboot!\n");
+}
+
+static void mca_cc6ul_shutdown(void)
+{
+	switch (system_state) {
+	case SYSTEM_HALT:
+		/* fall through on purpose */
+	case SYSTEM_POWER_OFF:
+		mca_cc6ul_power_off();
+		break;
+	case SYSTEM_RESTART:
+		mca_cc6ul_reset();
+		break;
+	default:
+		break;
+	}
 }
 
 static int mca_cc6ul_add_dyn_sysfs_entries(struct mca_drv *mca,
@@ -834,6 +977,13 @@ int mca_cc6ul_device_init(struct mca_drv *mca, u32 irq)
 		return ret;
 	}
 	mca->hw_version = (u8)val;
+
+	ret = regmap_bulk_read(mca->regmap,
+			       MCA_UID_0, mca->uid, MCA_UID_SIZE);
+	if (ret != 0) {
+		dev_err(mca->dev, "Cannot read MCA UID (%d)\n", ret);
+		return ret;
+	}
 
 	ret = regmap_bulk_read(mca->regmap, MCA_FW_VER_L, &val, 2);
 	if (ret != 0) {
@@ -938,12 +1088,6 @@ int mca_cc6ul_device_init(struct mca_drv *mca, u32 irq)
 
 	pmca = mca;
 
-	if (pm_power_off != NULL) {
-		dev_warn(mca->dev, "pm_power_off function already registered. "
-			 "Will be override by MCA function.\n");
-	}
-	pm_power_off = mca_cc6ul_power_off;
-
 	/*
 	 * To avoid error messages when resuming from suspend, increase the I2C
 	 * bus' usage counter so the linux pm_runtime framework wakes it from
@@ -995,7 +1139,6 @@ int mca_cc6ul_device_init(struct mca_drv *mca, u32 irq)
 out_nvram:
 	kfree(mca->nvram);
 out_pwr_off:
-	pm_power_off = NULL;
 out_sysfs_remove:
 	pmca = NULL;
 	sysfs_remove_group(&mca->dev->kobj, &mca_cc6ul_attr_group);
@@ -1010,7 +1153,6 @@ out_irq:
 void mca_cc6ul_device_exit(struct mca_drv *mca)
 {
 	unregister_syscore_ops(&mca->syscore);
-	pm_power_off = NULL;
 	pmca = NULL;
 	sysfs_remove_group(&mca->dev->kobj, &mca_cc6ul_attr_group);
 	mfd_remove_devices(mca->dev);

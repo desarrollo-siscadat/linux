@@ -111,6 +111,7 @@ static struct mca_drv *pmca;
 
 static const char _enabled[] = "enabled";
 static const char _disabled[] = "disabled";
+static const char _unlock_pattern[] = "CTRU";
 
 static struct resource mca_cc8_rtc_resources[] = {
 	{
@@ -258,6 +259,12 @@ static const struct mfd_cell mca_cc8x_devs[] = {
 		.of_compatible  = "digi,mca-cc8x-wdt",
 	},
 	{
+		.name           = MCA_CC8X_DRVNAME_GPIO_WATCHDOG,
+		.num_resources	= ARRAY_SIZE(mca_cc8_watchdog_resources),
+		.resources	= mca_cc8_watchdog_resources,
+		.of_compatible  = "digi,mca-cc8x-gpio-wdt",
+	},
+	{
 		.name           = MCA_CC8X_DRVNAME_GPIO,
 		.num_resources	= ARRAY_SIZE(mca_cc8_gpios_resources),
 		.resources	= mca_cc8_gpios_resources,
@@ -315,6 +322,12 @@ static const struct mfd_cell mca_cc8m_devs[] = {
 		.num_resources	= ARRAY_SIZE(mca_cc8_watchdog_resources),
 		.resources	= mca_cc8_watchdog_resources,
 		.of_compatible  = "digi,mca-cc8m-wdt",
+	},
+	{
+		.name           = MCA_CC8M_DRVNAME_GPIO_WATCHDOG,
+		.num_resources	= ARRAY_SIZE(mca_cc8_watchdog_resources),
+		.resources	= mca_cc8_watchdog_resources,
+		.of_compatible  = "digi,mca-cc8m-gpio-wdt",
 	},
 	{
 		.name           = MCA_CC8M_DRVNAME_GPIO,
@@ -743,11 +756,123 @@ static ssize_t nvram_write(struct file *filp, struct kobject *kobj,
 	return count;
 }
 
+static ssize_t uid_show(struct device *dev,
+			struct device_attribute *attr, char *buf)
+
+{
+	struct mca_drv *mca = dev_get_drvdata(dev);
+	int ret, i, count;
+
+	for (i = 0, ret = 0; i < MCA_UID_SIZE; i++) {
+		count = sprintf(buf, i ? ":%02x" : "%02x", mca->uid[i]);
+		if (count < 0)
+			return count;
+		ret += count;
+		buf += count;
+	}
+
+	return ret;
+}
+static DEVICE_ATTR(uid, S_IRUGO, uid_show, NULL);
+
+static ssize_t reboot_safe_store(struct device *dev,
+				 struct device_attribute *attr,
+				 const char *buf, size_t count)
+{
+	struct mca_drv *mca = dev_get_drvdata(dev);
+	u8 value;
+	int ret;
+
+	if (count < sizeof(_unlock_pattern))
+		return -ENODATA ;
+
+	if (strncmp(buf, _unlock_pattern, sizeof(_unlock_pattern) - 1))
+		return -EINVAL;
+
+	/* Timeout value must be provided */
+	ret = kstrtou8(&buf[4], 0, &value);
+	if (ret) {
+		dev_err(pmca->dev,
+			"failed to parse timeout value, range is 0-255 (%d)\n",
+			ret);
+		return ret;
+	}
+
+	ret = mca_cc8_unlock_ctrl(mca);
+	if (ret)
+		return ret;
+
+	ret = regmap_write(pmca->regmap, MCA_RESET_SAFE_TIMEOUT, value);
+	if (ret) {
+		dev_err(pmca->dev,
+			"failed to write MCA_RESET_SAFE_TIMEOUT (%d)\n",
+			ret);
+		return ret;
+	}
+
+	ret = regmap_write(pmca->regmap, MCA_CTRL_0, MCA_RESET_SAFE);
+	if (ret) {
+		dev_err(mca->dev, "Cannot update MCA CTRL_0 register (%d)\n",
+			ret);
+		return ret;
+	}
+
+	return count;
+}
+static DEVICE_ATTR(reboot_safe, 0200, NULL, reboot_safe_store);
+
+static ssize_t pwroff_safe_store(struct device *dev,
+				 struct device_attribute *attr,
+				 const char *buf, size_t count)
+{
+	struct mca_drv *mca = dev_get_drvdata(dev);
+	u8 value;
+	int ret;
+
+	/* Timeout value must be provided */
+	if (count < sizeof(_unlock_pattern))
+		return -ENODATA ;
+
+	if (strncmp(buf, _unlock_pattern, sizeof(_unlock_pattern) - 1))
+		return -EINVAL;
+
+	ret = kstrtou8(&buf[4], 0, &value);
+	if (ret) {
+		dev_err(pmca->dev,
+			"failed to parse timeout value, range is 0-255 (%d)\n",
+			ret);
+		return ret;
+	}
+
+	ret = mca_cc8_unlock_ctrl(mca);
+	if (ret)
+		return ret;
+
+	ret = regmap_write(pmca->regmap, MCA_PWROFF_SAFE_TIMEOUT, value);
+	if (ret) {
+		dev_err(pmca->dev,
+			"failed to write MCA_PWROFF_SAFE_TTIMEOUT (%d)\n",
+			ret);
+		return ret;
+	}
+
+	ret = regmap_write(pmca->regmap, MCA_CTRL_0, MCA_PWROFF_SAFE);
+	if (ret) {
+		dev_err(mca->dev, "Cannot update MCA CTRL_0 register (%d)\n",
+			ret);
+		return ret;
+	}
+
+	return count;
+}
+static DEVICE_ATTR(pwroff_safe, 0200, NULL, pwroff_safe_store);
+
 static struct attribute *mca_cc8_sysfs_entries[] = {
 	&dev_attr_ext_32khz.attr,
 	&dev_attr_hw_version.attr,
 	&dev_attr_fw_version.attr,
 	&dev_attr_fw_update.attr,
+	&dev_attr_uid.attr,
 	NULL,
 };
 
@@ -776,6 +901,14 @@ static struct dyn_attribute mca_cc8_sysfs_dyn_entries[] = {
 	{
 		.since =	MCA_MAKE_FW_VER(0,4),
 		.attr =		&dev_attr_last_mpu_reset.attr,
+	},
+	{
+		.since =	MCA_MAKE_FW_VER(1,03),
+		.attr =		&dev_attr_reboot_safe.attr,
+	},
+	{
+		.since =	MCA_MAKE_FW_VER(1,03),
+		.attr =		&dev_attr_pwroff_safe.attr,
 	},
 };
 
@@ -981,6 +1114,13 @@ int mca_cc8_device_init(struct mca_drv *mca, u32 irq)
 		return ret;
 	}
 	mca->hw_version = (u8)val;
+
+	ret = regmap_bulk_read(mca->regmap,
+			       MCA_UID_0, mca->uid, MCA_UID_SIZE);
+	if (ret != 0) {
+		dev_err(mca->dev, "Cannot read MCA UID (%d)\n", ret);
+		return ret;
+	}
 
 	ret = regmap_bulk_read(mca->regmap, MCA_FW_VER_L, &val, 2);
 	if (ret != 0) {

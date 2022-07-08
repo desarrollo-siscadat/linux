@@ -327,6 +327,27 @@
 			digi,full-reset;
 		};
 
+		gpio_wdt: gpio-wdt {
+			compatible = "digi,mca-cc8x-gpio-wdt";
+			status = "disabled";
+
+			gpio_wdt0: gpio-wdt@0x210 {
+				status = "disabled";
+			};
+
+			gpio_wdt1: gpio-wdt@0x220 {
+				status = "disabled";
+			};
+
+			gpio_wdt2: gpio-wdt@0x230 {
+				status = "disabled";
+			};
+
+			gpio_wdt3: gpio-wdt@0x240 {
+				status = "disabled";
+			};
+		};
+
 		pwms {
 			compatible = "digi,mca-pwm";
 			#address-cells = <1>;
@@ -402,6 +423,14 @@
 	status = "disabled";
 };
 
+/* These GPIOs banks are not available in the SOM */
+&lsio_gpio6 {
+	status = "disabled";
+};
+
+&lsio_gpio7 {
+	status = "disabled";
+};
 /*
  * Disable mipi1 lpcg nodes by default, not supported on the DualXZ variants.
  * An overlay re-enables these nodes if supported by the corresponding variant.
@@ -466,6 +495,21 @@
 };
 
 &thermal_zones {
+	cpu-thermal0 {
+		trips {
+			cpu_alert0: trip0 {
+				temperature = <85000>;
+				hysteresis = <2000>;
+				type = "passive";
+			};
+			cpu_crit0: trip1 {
+				temperature = <100000>;
+				hysteresis = <2000>;
+				type = "critical";
+			};
+		};
+	};
+
 	pmic-thermal0 {
 		polling-delay-passive = <250>;
 		polling-delay = <2000>;

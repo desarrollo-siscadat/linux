@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 Digi International Inc.
+ * Copyright 2021 Digi International Inc.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -20,52 +20,49 @@
 	fragment@0 {
 		target-path = "/";
 		__overlay__ {
-			overlay-description = "SOM: Bluetooth";
+			overlay-description = "DVK: FlexSPI";
 		};
 	};
 
-	/* Enable the Bluetooth interface */
+	/* Enable flexspi */
 	fragment@1 {
-		target = <&bluetooth>;
+		target = <&flexspi>;
 		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_flexspi>;
 			status = "okay";
-		};
-	};
 
-	/* Enable the RF regulator */
-	fragment@2 {
-		target = <&reg_3v3_rf>;
-		__overlay__ {
-			status = "okay";
-		};
-	};
-
-	/* Enable the BT regulator */
-	fragment@3 {
-		target = <&reg_rf_bt_en>;
-		__overlay__ {
-			status = "okay";
+			flash0: mt25qu256aba@0 {
+				reg = <0>;
+				#address-cells = <1>;
+				#size-cells = <1>;
+				compatible = "jedec,spi-nor";
+				spi-max-frequency = <80000000>;
+				spi-tx-bus-width = <4>;
+				spi-rx-bus-width = <4>;
+			};
 		};
 	};
 
 	/*
-	 * Enable the Wi-Fi regulator. If the Wi-Fi overlay is
-	 * not applied, the lack of consumers will make the kernel
-	 * turn the regulator off by asserting WL_EN low. If not handled,
-	 * WL_EN may remain tri-stated which might affect the Bluetooth.
+	 * The following DVK interfaces need to be disabled due to conflicts
+	 * with the QSPI lines.
 	 */
-	fragment@4 {
-		target = <&reg_rf_wl_en>;
+	/* Disable lt_bridge */
+	fragment@2 {
+		target = <&lt_bridge>;
 		__overlay__ {
-			status = "okay";
+			status = "disabled";
 		};
 	};
 
-	/* Enable UART2 (Bluetooth) */
-	fragment@5 {
-		target = <&uart2>;
+	/* Disable dsi_lvds_bridge */
+	fragment@3 {
+		target = <&dsi_lvds_bridge>;
 		__overlay__ {
-			status = "okay";
+			status = "disabled";
 		};
 	};
 };
